@@ -32,6 +32,14 @@ app.get('/', async (req, res) => {
 
 io.on("connection", (socket) => {
   console.log(socket.id, "has joined");
+
+
+  socket.on('join', function (data) {
+    console.log(data);
+  });
+
+
+
   socket.on("disconnect", () => {
     console.log(socket.id, 'has disconnect'); // undefined
   });
@@ -39,6 +47,16 @@ io.on("connection", (socket) => {
 
 
 
+
+
+setInterval(async () => {
+  // io.emit('clock', "Hello world from server");
+ 
+  let parking  = await db.query(`SELECT * FROM parkdata_tables;`);
+
+  io.emit('parking', parking);
+  
+}, 2000);
 
 app.post('/booking', async (req, res) => {
   let userid = req.body.userid;
@@ -66,7 +84,7 @@ app.post('/booking', async (req, res) => {
         message: "lower limit than we set.",
       });
     }
-    
+
 
     if (bookinglimit[0].limitbooking <= 0) {
       return res.status(401).json({
@@ -364,11 +382,11 @@ app.post('/pey', async function (req, res) {
   let qrcodeid = req.body.qrcodeid;
   let servicecharge = parseInt(req.body.servicecharge);
   let userid = req.body.userid;
-  let  hourincar = req.body.hourincar;
+  let hourincar = req.body.hourincar;
   console.log(req.body);
 
 
-  
+
   console.log(`update booking_table set booking_status = 'สำเร็จ' , timeoutcar = '${timenow()}' where id = ${qrcodeid};`);
 
   try {
@@ -381,13 +399,13 @@ app.post('/pey', async function (req, res) {
 
 
 
-    
+
     if (usercheck[0].money < servicecharge) {
       return res.status(401).json({ message: 'Your balance is not enough', status: '401' });
     }
 
     console.log(`update booking_table set booking_status = 'สำเร็จ' , timeoutcar = '${timenow()}' where id = ${qrcodeid};`);
-    let updateqrcode  = await db.query(`update booking_table set booking_status = 'สำเร็จ' , timeoutcar = '${timenow()}' where id = ${qrcodeid};`);
+    let updateqrcode = await db.query(`update booking_table set booking_status = 'สำเร็จ' , timeoutcar = '${timenow()}' where id = ${qrcodeid};`);
 
 
 
@@ -401,7 +419,7 @@ app.post('/pey', async function (req, res) {
       await db.query('UPDATE barrier set status = 1 WHERE (id = 1);');
       db.query(`select * from limit_table;`, (err, result) => {
         if (err) throw err;
-        
+
 
         // io.emit('bookingrights2',)
         console.log(result[0].limitbooking);
@@ -416,6 +434,9 @@ app.post('/pey', async function (req, res) {
     res.status(500).json({ message: error.message, status: '500' });
   }
 });
+
+
+
 
 
 
